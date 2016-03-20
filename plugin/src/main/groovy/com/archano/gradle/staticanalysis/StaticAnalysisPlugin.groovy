@@ -115,8 +115,7 @@ class StaticAnalysisPlugin implements Plugin<Project> {
             if (!unitTestTask) {
                 return
             }
-            def jacocoName = "jacoco${variant.name.capitalize()}UnitTest"
-            def jacocoTask = project.tasks.create(jacocoName, JacocoReport)
+            def jacocoTask = project.tasks.create("jacoco${variant.name.capitalize()}UnitTest", JacocoReport)
             jacocoTask.with {
                 group = "verification"
                 description = "Generate Jacoco reports for ${variant.name}"
