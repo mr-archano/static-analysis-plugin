@@ -1,6 +1,6 @@
 ext {
   pluginGroup = 'com.github.mr-archano.static-analysis-plugin'
-  pluginVersion = '0.1.0'
+  pluginVersion = '0.1.1'
 }
 
 allprojects {
