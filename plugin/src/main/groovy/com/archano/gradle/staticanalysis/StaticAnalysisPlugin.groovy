@@ -64,7 +64,7 @@ class StaticAnalysisPlugin implements Plugin<Project> {
 
     private void handleSeverityInCheckstyleReport(Severity severity, Project project) {
         if (severity == Severity.WARNINGS) {
-            project.tasks.withType(Checkstyle).each { task ->
+            project.tasks.withType(Checkstyle).all { task ->
                 task << {
                     File xmlReportFile = task.reports.xml.destination
                     File htmlReportFile = new File(xmlReportFile.absolutePath - '.xml' + '.html')
@@ -151,7 +151,8 @@ class StaticAnalysisPlugin implements Plugin<Project> {
                 ruleSetConfig = pmdRules
                 ignoreFailures = severity != Severity.WARNINGS
             }
-            tasks.withType(Pmd).each { task ->
+            tasks.withType(Pmd).all { task ->
+                task.group = 'verification'
                 task.exclude excludeList
                 task.reports {
                     xml.enabled = true
@@ -194,7 +195,7 @@ class StaticAnalysisPlugin implements Plugin<Project> {
 
     private void handleSeverityInPmdReport(Severity severity, Project project) {
         if (severity == Severity.ERRORS) {
-            project.tasks.withType(Pmd).each { task ->
+            project.tasks.withType(Pmd).all { task ->
                 task << {
                     File xmlReportFile = task.reports.xml.destination
                     File htmlReportFile = new File(xmlReportFile.absolutePath - '.xml' + '.html')
