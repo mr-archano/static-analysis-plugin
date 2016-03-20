@@ -1,0 +1,19 @@
+group pluginGroup
+version pluginVersion
+apply plugin: 'maven'
+
+if (project.hasProperty('localDeploy')) {
+  File localRepo = rootProject.file('.gradle/repo')
+  if (!localRepo.exists()) {
+    localRepo.mkdirs()
+  }
+
+  uploadArchives {
+    repositories {
+      mavenDeployer {
+        repository(url: localRepo.toURI())
+      }
+    }
+  }
+}
+
