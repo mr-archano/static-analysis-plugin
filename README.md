@@ -36,6 +36,10 @@ The plugin is currently released via Jitpack. To include it in your project:
       maven { url "https://jitpack.io" }
     }
   }
+  repositories {
+    ...
+    maven { url "https://jitpack.io" }
+  }
 ```
 2)  Add the buildscript dependency
 ```groovy
