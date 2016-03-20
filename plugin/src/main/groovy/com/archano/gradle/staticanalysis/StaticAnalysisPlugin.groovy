@@ -114,11 +114,11 @@ class StaticAnalysisPlugin implements Plugin<Project> {
             if (!unitTestTask) {
                 return
             }
-            def jacocoName = "jacoco${variant.name.capitalize()}"
+            def jacocoName = "jacoco${variant.name.capitalize()}UnitTest"
             def jacocoTask = project.tasks.create(jacocoName, JacocoReport)
             jacocoTask.with {
                 group = "verification"
-                description = "Generate Jacoco covetestTaskNamerts for ${variant.name}"
+                description = "Generate Jacoco reports for ${variant.name}"
                 classDirectories = project.fileTree(variant.javaCompile.destinationDir)
                 sourceDirectories = variant.javaCompile.source
                 executionData new File("${project.buildDir}/jacoco/${unitTestTask.name}.exec")
