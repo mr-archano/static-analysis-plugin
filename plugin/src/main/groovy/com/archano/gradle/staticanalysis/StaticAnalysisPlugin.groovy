@@ -4,6 +4,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.quality.Checkstyle
+import org.gradle.api.plugins.quality.Pmd
 import org.gradle.api.resources.TextResource
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
@@ -26,7 +27,7 @@ class StaticAnalysisPlugin implements Plugin<Project> {
         boolean isAndroidLib = project.plugins.hasPlugin('com.android.library')
         boolean isJavaProject = project.plugins.hasPlugin('java')
 
-        project.configurations{
+        project.configurations {
             staticAnalysis
         }
         project.dependencies {
@@ -34,15 +35,18 @@ class StaticAnalysisPlugin implements Plugin<Project> {
         }
 
         TextResource checkstyleRules = project.resources.text.fromArchiveEntry(project.configurations.staticAnalysis, 'checkstyle/modules.xml')
+        TextResource pmdRules = project.resources.text.fromArchiveEntry(project.configurations.staticAnalysis, 'pmd/rules.xml')
 
         if (isJavaProject) {
             applyJavaCheckstyle(project, checkstyleRules, severity, excludeList)
+            applyJavaPmd(project, pmdRules, severity, excludeList)
             applyJavaJacoco(project)
         } else if (isAndroidApp || isAndroidLib) {
             def variants = isAndroidApp ? project.android.variants : project.android.libraryVariants
             applyAndroidCheckstyle(project, variants, checkstyleRules, severity, excludeList)
-            applyAndroidJacoco(project, variants)
+            applyAndroidPmd(project, variants, pmdRules, severity, excludeList)
             applyAndroidLint(project, severity)
+            applyAndroidJacoco(project, variants)
         }
     }
 
@@ -55,10 +59,10 @@ class StaticAnalysisPlugin implements Plugin<Project> {
             }
             tasks.withType(Checkstyle).all { it.exclude excludeList }
         }
-        handleSeverityInReport(severity, project)
+        handleSeverityInCheckstyleReport(severity, project)
     }
 
-    private void handleSeverityInReport(Severity severity, Project project) {
+    private void handleSeverityInCheckstyleReport(Severity severity, Project project) {
         if (severity == Severity.WARNINGS) {
             project.tasks.withType(Checkstyle).each { task ->
                 task << {
@@ -105,7 +109,7 @@ class StaticAnalysisPlugin implements Plugin<Project> {
                 check.dependsOn checkstyle
             }
         }
-        handleSeverityInReport(severity, project)
+        handleSeverityInCheckstyleReport(severity, project)
     }
 
     private void applyAndroidJacoco(Project project, variants) {
@@ -136,6 +140,70 @@ class StaticAnalysisPlugin implements Plugin<Project> {
             lintOptions {
                 abortOnError(severity == Severity.ERRORS || severity == Severity.WARNINGS)
                 warningsAsErrors(severity == Severity.WARNINGS)
+            }
+        }
+    }
+
+    private void applyJavaPmd(Project project, TextResource pmdRules, Severity severity, List<String> excludeList) {
+        project.with {
+            apply plugin: 'pmd'
+            pmd {
+                ruleSetConfig = pmdRules
+                ignoreFailures = severity != Severity.WARNINGS
+            }
+            tasks.withType(Pmd).each { task ->
+                task.exclude excludeList
+                task.reports {
+                    xml.enabled = true
+                }
+            }
+        }
+        handleSeverityInPmdReport(severity, project)
+    }
+
+    private void applyAndroidPmd(Project project, variants, TextResource pmdRules, Severity severity, List<String> excludeList) {
+        project.with {
+            apply plugin: 'pmd'
+            def check = project.tasks['check']
+            android.sourceSets.all { sourceSet ->
+                def sourceDirs = sourceSet.java.srcDirs
+                def notEmptyDirs = sourceDirs.findAll { it.list()?.length > 0 }
+                if (notEmptyDirs.empty) {
+                    return
+                }
+                Pmd pmd = project.tasks.create("pmd${sourceSet.name.capitalize()}", Pmd)
+                pmd.with {
+                    group = 'verification'
+                    description = "Run Pmd analysis for ${sourceSet.name} classes"
+                    ignoreFailures = severity != Severity.WARNINGS
+                    source = sourceSet.java.srcDirs
+                    ruleSetConfig = pmdRules
+                    exclude excludeList
+                    reports {
+                        xml.enabled = true
+                    }
+                }
+                variants.all { variant ->
+                    pmd.mustRunAfter variant.javaCompile
+                }
+                check.dependsOn pmd
+            }
+        }
+        handleSeverityInPmdReport(severity, project)
+    }
+
+    private void handleSeverityInPmdReport(Severity severity, Project project) {
+        if (severity == Severity.ERRORS) {
+            project.tasks.withType(Pmd).each { task ->
+                task << {
+                    File xmlReportFile = task.reports.xml.destination
+                    File htmlReportFile = new File(xmlReportFile.absolutePath - '.xml' + '.html')
+                    if (xmlReportFile.exists()) {
+                        if (xmlReportFile.text.contains("priority=\"1\"") || xmlReportFile.text.contains("priority=\"2\"")) {
+                            throw new GradleException("Pmd rule violations were found. See the report at: ${htmlReportFile ?: xmlReportFile}")
+                        }
+                    }
+                }
             }
         }
     }
