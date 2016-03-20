@@ -57,7 +57,10 @@ class StaticAnalysisPlugin implements Plugin<Project> {
                 config = rules
                 ignoreFailures = severity == Severity.NONE
             }
-            tasks.withType(Checkstyle).all { it.exclude excludeList }
+            tasks.withType(Checkstyle).all { task ->
+                task.group = 'verification'
+                task.exclude excludeList
+            }
         }
         handleSeverityInCheckstyleReport(severity, project)
     }
@@ -77,9 +80,14 @@ class StaticAnalysisPlugin implements Plugin<Project> {
     }
 
     private void applyJavaJacoco(Project project) {
-        project.apply plugin: 'jacoco'
-        project.jacoco {
-            toolVersion = '0.7.2.201409121644'
+        project.with {
+            apply plugin: 'jacoco'
+            jacoco {
+                toolVersion = '0.7.2.201409121644'
+            }
+            tasks.withType(JacocoReport).all { task ->
+                task.group = 'verification'
+            }
         }
     }
 
