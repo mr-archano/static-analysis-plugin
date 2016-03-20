@@ -1,0 +1,4 @@
+ext {
+  pluginGroup = 'com.archano.static-analysis'
+  pluginVersion = '0.0.1'
+}
