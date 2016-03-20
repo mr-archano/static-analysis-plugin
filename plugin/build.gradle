@@ -4,3 +4,18 @@ apply from: rootProject.file('gradle/maven.gradle')
 dependencies {
   compile gradleApi()
 }
+
+sourceSets {
+  main {
+    java {
+      srcDir "$buildDir/gen/java"
+    }
+  }
+}
+
+project.tasks.create(name: 'generateConstants', type: GenerateConstants) {
+  outputDir = new File("$buildDir/gen/java")
+  pluginGroup = project.pluginGroup
+  pluginVersion = project.pluginVersion
+  project.tasks.compileJava.dependsOn it
+}
