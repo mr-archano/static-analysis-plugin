@@ -42,6 +42,7 @@ class StaticAnalysisPlugin implements Plugin<Project> {
             def variants = isAndroidApp ? project.android.variants : project.android.libraryVariants
             applyAndroidCheckstyle(project, variants, checkstyleRules, severity, excludeList)
             applyAndroidJacoco(project, variants)
+            applyAndroidLint(project, severity)
         }
     }
 
@@ -127,6 +128,15 @@ class StaticAnalysisPlugin implements Plugin<Project> {
                     html.enabled = true
                 }
                 dependsOn unitTestTask
+            }
+        }
+    }
+
+    private void applyAndroidLint(Project project, Severity severity) {
+        project.android {
+            lintOptions {
+                abortOnError(severity == Severity.ERRORS || severity == Severity.WARNINGS)
+                warningsAsErrors(severity == Severity.WARNINGS)
             }
         }
     }
