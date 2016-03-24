@@ -6,6 +6,7 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.Pmd
 import org.gradle.api.resources.TextResource
+import org.gradle.logging.ConsoleRenderer
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
 class StaticAnalysisPlugin implements Plugin<Project> {
@@ -157,7 +158,7 @@ class StaticAnalysisPlugin implements Plugin<Project> {
             apply plugin: 'pmd'
             pmd {
                 ruleSetConfig = pmdRules
-                ignoreFailures = severity != Severity.WARNINGS
+                ignoreFailures = true // we resort to our own failure handling to consider severity level
             }
             tasks.withType(Pmd).all { task ->
                 task.group = 'verification'
@@ -165,9 +166,9 @@ class StaticAnalysisPlugin implements Plugin<Project> {
                 task.reports {
                     xml.enabled = true
                 }
+                handleSeverityInPmdReport(task, severity)
             }
         }
-        handleSeverityInPmdReport(severity, project)
     }
 
     private void applyAndroidPmd(Project project, variants, TextResource pmdRules, Severity severity, List<String> excludeList) {
@@ -183,8 +184,8 @@ class StaticAnalysisPlugin implements Plugin<Project> {
                 Pmd pmd = project.tasks.create("pmd${sourceSet.name.capitalize()}", Pmd)
                 pmd.with {
                     group = 'verification'
-                    description = "Run Pmd analysis for ${sourceSet.name} classes"
-                    ignoreFailures = severity != Severity.WARNINGS
+                    description = "Run PMD analysis for ${sourceSet.name} classes"
+                    ignoreFailures = true // we resort to our own failure handling to consider severity level
                     source = sourceSet.java.srcDirs
                     ruleSetConfig = pmdRules
                     exclude excludeList
@@ -192,25 +193,25 @@ class StaticAnalysisPlugin implements Plugin<Project> {
                         xml.enabled = true
                     }
                 }
+                handleSeverityInPmdReport(pmd, severity)
                 variants.all { variant ->
                     pmd.mustRunAfter variant.javaCompile
                 }
                 check.dependsOn pmd
             }
         }
-        handleSeverityInPmdReport(severity, project)
     }
 
-    private void handleSeverityInPmdReport(Severity severity, Project project) {
-        if (severity == Severity.ERRORS) {
-            project.tasks.withType(Pmd).all { task ->
-                task << {
-                    File xmlReportFile = task.reports.xml.destination
-                    File htmlReportFile = new File(xmlReportFile.absolutePath - '.xml' + '.html')
-                    if (xmlReportFile.exists()) {
-                        if (xmlReportFile.text.contains("priority=\"1\"") || xmlReportFile.text.contains("priority=\"2\"")) {
-                            throw new GradleException("Pmd rule violations were found. See the report at: ${htmlReportFile ?: xmlReportFile}")
-                        }
+    private void handleSeverityInPmdReport(Pmd pmd, Severity severity) {
+        if (severity != Severity.NONE) {
+            pmd.doLast {
+                File xmlReportFile = pmd.reports.xml.destination
+                File htmlReportFile = new File(xmlReportFile.absolutePath - '.xml' + '.html')
+                if (xmlReportFile.exists()) {
+                    CharSequence pattern = (severity == Severity.WARNINGS ? "priority=\"[123]\"" : "priority=\"1\"")
+                    def violations = xmlReportFile.text.findAll(pattern)
+                    if (!violations.empty) {
+                        throw new GradleException("${violations.size()} Fatal PMD rule violations were found. See the report at: ${new ConsoleRenderer().asClickableFileUrl(htmlReportFile ?: xmlReportFile)}")
                     }
                 }
             }
