@@ -11,14 +11,6 @@ import org.gradle.testing.jacoco.tasks.JacocoReport
 
 class StaticAnalysisPlugin implements Plugin<Project> {
 
-    enum Severity {
-        NONE, ERRORS, WARNINGS
-
-        static Severity from(Project project) {
-            project.hasProperty('severity') ? valueOf(project.severity.toUpperCase()) : NONE
-        }
-    }
-
     @Override
     void apply(Project project) {
         Severity severity = Severity.from(project)
