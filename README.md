@@ -45,7 +45,7 @@ The plugin is currently released via Jitpack. To include it in your project:
 ```groovy
 buildscript {
   dependencies {
-    classpath 'com.github.mr-archano.static-analysis-plugin:plugin:0.1.4'
+    classpath 'com.github.mr-archano.static-analysis-plugin:plugin:0.1.5'
   }
 }
 ```
