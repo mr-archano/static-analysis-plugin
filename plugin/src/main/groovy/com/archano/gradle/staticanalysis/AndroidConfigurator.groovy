@@ -28,15 +28,11 @@ class AndroidConfigurator extends JavaConfigurator {
                 }
                 Checkstyle checkstyle = project.tasks.create("checkstyle${sourceSet.name.capitalize()}", Checkstyle)
                 checkstyle.with {
-                    group = 'verification'
                     description = "Run Checkstyle analysis for ${sourceSet.name} classes"
                     source = sourceSet.java.srcDirs
                     classpath = project.files("$project.buildDir/intermediates/classes/")
-                    config = checkstyleRules
-                    ignoreFailures = severity == Severity.NONE
-                    exclude excludeList
                 }
-                handleSeverityInCheckstyleReport(checkstyle)
+                configure(checkstyle, checkstyleRules, excludeList)
                 variants.all { variant ->
                     checkstyle.mustRunAfter variant.javaCompile
                 }
@@ -57,18 +53,9 @@ class AndroidConfigurator extends JavaConfigurator {
                     return
                 }
                 Pmd pmd = project.tasks.create("pmd${sourceSet.name.capitalize()}", Pmd)
-                pmd.with {
-                    group = 'verification'
-                    description = "Run PMD analysis for ${sourceSet.name} classes"
-                    ignoreFailures = true // we resort to our own failure handling to consider severity level
-                    source = sourceSet.java.srcDirs
-                    ruleSetConfig = pmdRules
-                    exclude excludeList
-                    reports {
-                        xml.enabled = true
-                    }
-                }
-                handleSeverityInPmdReport(pmd)
+                pmd.source = sourceSet.java.srcDirs
+                pmd.description = "Run PMD analysis for ${sourceSet.name} classes"
+                configure(pmd, pmdRules, excludeList)
                 variants.all { variant ->
                     pmd.mustRunAfter variant.javaCompile
                 }
