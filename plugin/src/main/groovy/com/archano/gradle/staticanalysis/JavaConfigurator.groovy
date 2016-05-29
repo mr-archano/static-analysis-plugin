@@ -22,12 +22,12 @@ class JavaConfigurator extends Configurator {
                 ignoreFailures = severity == Severity.NONE
             }
             tasks.withType(Checkstyle).all { task ->
-                configure(task, checkstyleRules, excludeList)
+                configureCheckstyle(task, checkstyleRules, excludeList)
             }
         }
     }
 
-    protected void configure(Checkstyle checkstyle, TextResource checkstyleRules, List<String> excludeList) {
+    protected void configureCheckstyle(Checkstyle checkstyle, TextResource checkstyleRules, List<String> excludeList) {
         checkstyle.with {
             group = 'verification'
             config = checkstyleRules
@@ -50,12 +50,12 @@ class JavaConfigurator extends Configurator {
         project.with {
             apply plugin: 'pmd'
             tasks.withType(Pmd).all { task ->
-                configure(task, pmdRules, excludeList)
+                configurePmd(task, pmdRules, excludeList)
             }
         }
     }
 
-    protected void configure(Pmd pmd, TextResource pmdRules, List<String> excludeList) {
+    protected void configurePmd(Pmd pmd, TextResource pmdRules, List<String> excludeList) {
         pmd.with {
             group = 'verification'
             ignoreFailures = severity == Severity.NONE

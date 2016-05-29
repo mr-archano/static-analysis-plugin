@@ -32,7 +32,7 @@ class AndroidConfigurator extends JavaConfigurator {
                     source = sourceSet.java.srcDirs
                     classpath = project.files("$project.buildDir/intermediates/classes/")
                 }
-                configure(checkstyle, checkstyleRules, excludeList)
+                configureCheckstyle(checkstyle, checkstyleRules, excludeList)
                 variants.all { variant ->
                     checkstyle.mustRunAfter variant.javaCompile
                 }
@@ -55,7 +55,7 @@ class AndroidConfigurator extends JavaConfigurator {
                 Pmd pmd = project.tasks.create("pmd${sourceSet.name.capitalize()}", Pmd)
                 pmd.source = sourceSet.java.srcDirs
                 pmd.description = "Run PMD analysis for ${sourceSet.name} classes"
-                configure(pmd, pmdRules, excludeList)
+                configurePmd(pmd, pmdRules, excludeList)
                 variants.all { variant ->
                     pmd.mustRunAfter variant.javaCompile
                 }
