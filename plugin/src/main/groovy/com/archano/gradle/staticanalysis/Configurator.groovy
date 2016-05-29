@@ -16,12 +16,12 @@ abstract class Configurator {
 
         if (isJavaProject) {
             return new JavaConfigurator(project, severity)
-        } else if (isAndroidApp || isAndroidLib) {
+        }
+        if (isAndroidApp || isAndroidLib) {
             def variants = isAndroidApp ? project.android.applicationVariants : project.android.libraryVariants
             return new AndroidConfigurator(project, severity, variants)
-        } else {
-            throw new UnsupportedOperationException('Only Java or Android projects are supported.')
         }
+        throw new UnsupportedOperationException('Only Java or Android projects are supported.')
     }
 
     Configurator(Project project, Severity severity) {
