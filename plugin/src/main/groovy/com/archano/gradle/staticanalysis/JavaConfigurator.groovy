@@ -33,7 +33,7 @@ class JavaConfigurator extends Configurator {
             config = checkstyleRules
             ignoreFailures = severity == Severity.NONE
             exclude excludeList
-            if (severity == Severity.WARNINGS) {
+            if (severity == Severity.ALL) {
                 doLast {
                     File xmlReportFile = reports.xml.destination
                     File htmlReportFile = new File(xmlReportFile.absolutePath - '.xml' + '.html')
@@ -59,7 +59,7 @@ class JavaConfigurator extends Configurator {
         pmd.with {
             group = 'verification'
             ignoreFailures = severity == Severity.NONE
-            rulePriority = severity == Severity.WARNINGS ? 3 : 1
+            rulePriority = severity == Severity.ALL ? 3 : 1
             ruleSetConfig = pmdRules
             exclude excludeList
             reports {

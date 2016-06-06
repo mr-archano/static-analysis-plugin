@@ -68,8 +68,8 @@ class AndroidConfigurator extends JavaConfigurator {
     void configureLint() {
         project.android {
             lintOptions {
-                abortOnError(severity == Severity.ERRORS || severity == Severity.WARNINGS)
-                warningsAsErrors(severity == Severity.WARNINGS)
+                abortOnError(severity == Severity.ERRORS || severity == Severity.ALL)
+                warningsAsErrors(severity == Severity.ALL)
             }
         }
     }
