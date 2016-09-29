@@ -49,6 +49,10 @@ buildscript {
   }
 }
 ```
+3) Apply the plugin to your module
+```
+apply plugin: 'com.archano.static-analysis'
+```
 
 License
 =======
