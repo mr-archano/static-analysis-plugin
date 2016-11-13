@@ -1,3 +1,9 @@
+DEPRECATED
+==========
+
+A plugin re-write is available at https://github.com/novoda/gradle-static-analysis-plugin.
+
+
 # static-analysis-plugin
 **TL;DR:** A Gradle plugin to easily apply the same setup of static analysis tools across different Android or Java projects.<br/>
 <br/>
